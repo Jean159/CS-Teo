@@ -1,0 +1,67 @@
+@startuml
+skinparam dpi 220
+skinparam nodesep 20
+skinparam ranksep 40
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 14
+skinparam classAttributeIconSize 0
+skinparam class {
+  BackgroundColor #FFFFFF
+  BorderColor #1B5E8B
+  ArrowColor #404040
+  HeaderBackgroundColor #E3EDF5
+}
+skinparam note {
+  BackgroundColor #FBEFD9
+  BorderColor #BA750D
+}
+hide empty members
+hide circle
+
+title E1 · Patrón Adaptador (Procesamiento de Pagos)
+
+class ReservaService <<Cliente>> {
+  +pagar(r: Reserva, pasarela: PasarelaPago, cuenta: String): ResultadoPago
+}
+
+interface PasarelaPago <<interface (Objetivo)>> #FBEFD9 {
+  +cobrar(reserva: Reserva, cuenta: String): ResultadoPago
+}
+
+class TarjetaAdapter <<Adaptador>> {
+  -sdk: TarjetaSdk
+  +cobrar(reserva, cuenta): ResultadoPago
+}
+
+class YapeAdapter <<Adaptador>> {
+  -client: YapeClient
+  +cobrar(reserva, cuenta): ResultadoPago
+}
+
+class PaypalAdapter <<Adaptador>> {
+  -sdk: PaypalSdk
+  +cobrar(reserva, cuenta): ResultadoPago
+}
+
+class TarjetaSdk <<SDK externo (Adaptado)>> #F2F2F2 {
+  +autorizar(cuenta: String, centimos: long): int
+}
+
+class YapeClient <<SDK externo (Adaptado)>> #F2F2F2 {
+  +pagar(celular: String, centimos: long): String
+}
+
+class PaypalSdk <<SDK externo (Adaptado)>> #F2F2F2 {
+  +crearOrden(cuenta: String, dolares: BigDecimal): String
+}
+
+ReservaService --> PasarelaPago : usa
+TarjetaAdapter ..|> PasarelaPago
+YapeAdapter ..|> PasarelaPago
+PaypalAdapter ..|> PasarelaPago
+
+TarjetaAdapter --> TarjetaSdk : traduce autorizar()
+YapeAdapter --> YapeClient : traduce pagar()
+PaypalAdapter --> PaypalSdk : traduce crearOrden()
+@enduml

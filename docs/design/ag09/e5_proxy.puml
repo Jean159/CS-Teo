@@ -1,0 +1,49 @@
+@startuml
+skinparam dpi 220
+skinparam nodesep 20
+skinparam ranksep 40
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 14
+skinparam classAttributeIconSize 0
+skinparam class {
+  BackgroundColor #FFFFFF
+  BorderColor #1B5E8B
+  ArrowColor #404040
+  HeaderBackgroundColor #E3EDF5
+}
+skinparam note {
+  BackgroundColor #FBEFD9
+  BorderColor #BA750D
+}
+hide empty members
+hide circle
+
+title E5 · Patrón Proxy (Caché de Disponibilidad de Cupos)
+
+class BuscadorController <<Cliente>> {
+  -repository: DisponibilidadRepository
+  +cupos(id: long): int
+}
+
+interface DisponibilidadRepository <<interface (Sujeto)>> #FBEFD9 {
+  +cuposLibres(tourSalidaId: long): int
+}
+
+class DisponibilidadProxyCache <<Proxy>> {
+  -real: DisponibilidadRepositoryBD
+  -cache: ConcurrentHashMap<Long, EntradaCache>
+  -ttlMillis: long
+  +cuposLibres(tourSalidaId: long): int
+}
+
+class DisponibilidadRepositoryBD <<Sujeto Real>> {
+  -contadorConsultasBD: AtomicInteger
+  +cuposLibres(tourSalidaId: long): int
+}
+
+BuscadorController --> DisponibilidadRepository : consulta
+DisponibilidadProxyCache ..|> DisponibilidadRepository
+DisponibilidadRepositoryBD ..|> DisponibilidadRepository
+DisponibilidadProxyCache --> DisponibilidadRepositoryBD : delega si expira TTL (30s)
+@enduml

@@ -1,0 +1,56 @@
+@startuml
+skinparam dpi 220
+skinparam nodesep 20
+skinparam ranksep 40
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 14
+skinparam classAttributeIconSize 0
+skinparam class {
+  BackgroundColor #FFFFFF
+  BorderColor #1B5E8B
+  ArrowColor #404040
+  HeaderBackgroundColor #E3EDF5
+}
+hide empty members
+hide circle
+
+title E3 · Patrón Observador (Notificaciones de Confirmación de Reserva)
+
+class ReservaService <<Sujeto / Cliente>> {
+  -observadores: List<ObservadorReserva>
+  +suscribir(o: ObservadorReserva)
+  +confirmar(r: Reserva)
+}
+
+interface ObservadorReserva <<Observador>> #FBEFD9 {
+  +alConfirmar(r: Reserva)
+}
+
+class NotificadorWhatsAppTurista <<Observador Concreto>> {
+  +alConfirmar(r: Reserva)
+}
+
+class NotificadorWhatsAppGuia <<Observador Concreto>> {
+  +alConfirmar(r: Reserva)
+}
+
+class NotificadorCorreoAgencia <<Observador Concreto>> {
+  +alConfirmar(r: Reserva)
+}
+
+class NotificadorHospedaje <<Observador Concreto (Extensión)>> {
+  +alConfirmar(r: Reserva)
+}
+
+class ModuloContabilidad <<Observador Concreto (Extensión)>> {
+  +alConfirmar(r: Reserva)
+}
+
+ReservaService o--> "0..*" ObservadorReserva : notifica
+NotificadorWhatsAppTurista ..|> ObservadorReserva
+NotificadorWhatsAppGuia ..|> ObservadorReserva
+NotificadorCorreoAgencia ..|> ObservadorReserva
+NotificadorHospedaje ..|> ObservadorReserva
+ModuloContabilidad ..|> ObservadorReserva
+@enduml
