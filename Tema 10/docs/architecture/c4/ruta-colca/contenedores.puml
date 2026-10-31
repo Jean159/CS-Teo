@@ -1,0 +1,45 @@
+@startuml
+title <size:24>Container View: RutaColca</size>
+
+set separator none
+left to right direction
+
+<style>
+  root {
+    BackgroundColor: #ffffff
+    FontColor: #444444
+  }
+</style>
+
+!include <C4/C4>
+!include <C4/C4_Context>
+!include <C4/C4_Container>
+
+Person(Turista, "Turista", $descr="Busca salidas, reserva y paga.", $tags="", $link="")
+Person(Operadordeagencia, "Operador de agencia", $descr="Gestiona tours y reservas, incluso sin conexión.", $tags="", $link="")
+System(Pasareladepagosvigente, "Pasarela de pagos vigente", $descr="Procesa pagos actuales.", $tags="", $link="")
+System(PayPal, "PayPal", $descr="Proveedor propuesto para turistas extranjeros; contrato pendiente.", $tags="", $link="")
+System(AUTOCOLCA, "AUTOCOLCA", $descr="Valida boletos turísticos.", $tags="", $link="")
+System(WhatsAppBusiness, "WhatsApp Business", $descr="Envía itinerarios y avisos.", $tags="", $link="")
+
+System_Boundary("RutaColca_boundary", "RutaColca", $tags="") {
+  ContainerDb(RutaColca.PostgreSQL, "PostgreSQL", $techn="PostgreSQL 16", $descr="Salidas, reservas, pagos y claves idempotentes.", $tags="", $link="")
+  Container(RutaColca.Webdelturista, "Web del turista", $techn="React SPA", $descr="Busca salidas y solicita reservas/pagos.", $tags="", $link="")
+  Container(RutaColca.Portaldeagencias, "Portal de agencias", $techn="React PWA", $descr="Administra tours y reservas con trabajo sin conexión.", $tags="", $link="")
+  Container(RutaColca.APICore, "API Core", $techn="Java 21 / Spring Boot", $descr="Monolito modular de reservas, pagos y boletos.", $tags="", $link="")
+}
+
+Rel(Turista, RutaColca.Webdelturista, "Busca salidas y paga", $techn="HTTPS", $tags="", $link="")
+Rel(Operadordeagencia, RutaColca.Portaldeagencias, "Gestiona tours y reservas", $techn="HTTPS", $tags="", $link="")
+Rel(RutaColca.Webdelturista, RutaColca.APICore, "Solicita reserva e inicio de pago", $techn="JSON/HTTPS", $tags="", $link="")
+Rel(RutaColca.Portaldeagencias, RutaColca.APICore, "Administra tours y reservas", $techn="JSON/HTTPS", $tags="", $link="")
+Rel(RutaColca.APICore, RutaColca.PostgreSQL, "Guarda reservas y estados", $techn="JDBC/SQL", $tags="", $link="")
+Rel(RutaColca.APICore, Pasareladepagosvigente, "Procesa pagos vigentes", $techn="HTTPS", $tags="", $link="")
+Rel(RutaColca.APICore, PayPal, "Inicia y consulta pagos propuestos", $techn="HTTPS", $tags="", $link="")
+Rel(PayPal, RutaColca.APICore, "Notifica cambio de estado autenticado", $techn="HTTPS", $tags="", $link="")
+Rel(RutaColca.APICore, AUTOCOLCA, "Valida boletos", $techn="HTTPS", $tags="", $link="")
+Rel(RutaColca.APICore, WhatsAppBusiness, "Envía itinerarios", $techn="HTTPS", $tags="", $link="")
+
+SHOW_LEGEND(true)
+hide stereotypes
+@enduml

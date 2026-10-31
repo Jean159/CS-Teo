@@ -1,0 +1,8 @@
+# Preguntas para la socialización (AG-10, sección 6.2)
+
+1. **¿Qué escenarios quedaron (A,A), y por qué?** E1: consulta simultánea de 2000 turistas con un pico de reservas ×10; sin pruebas de carga, dos réplicas y PostgreSQL pueden saturarse. E2: una caída de la pasarela de 15 minutos exige persistir intención y confirmar después, sin pérdida ni duplicados. E5: AUTOCOLCA caído obliga a diferir validación sin cobrar boletos inválidos, con plazo ≤ 2 h. Son estimaciones de dificultad, no mediciones.
+2. **¿Qué alternativa se descartó y qué la hizo perder?** La alternativa B agrega PayPal directamente mediante condicional en el servicio actual; puede ser más rápida inicialmente, pero tiende a mezclar SDK, respuestas y callbacks de proveedores. A (puerto/adaptadores internos) hace verificable el objetivo de cero cambios en el dominio. El plazo de tres días-persona sigue sin comprobarse.
+3. **¿Qué trade-off introduce la decisión y cómo se mitiga?** Más interfaces, traducciones, pruebas de contrato y mantenimiento de dos APIs elevan el costo inicial a cambio de menor acoplamiento. Se mitiga con una interfaz pequeña, pruebas por adaptador, referencias únicas, idempotencia y telemetría sin datos sensibles.
+4. **¿Su decisión ayuda o perjudica a otro escenario?** La separación limita que un fallo de PayPal altere la pasarela vigente (ayuda a E2), pero una llamada síncrona lenta puede incrementar p95 de E1. Se requieren límites de tiempo, conexiones y medición bajo carga. Un aviso de pago no debe adelantarse a la validación de AUTOCOLCA (E5): no confirmar cobros de boletos inválidos.
+
+Las respuestas describen el **diseño propuesto**, no resultados de ensayos de carga ni políticas aprobadas por el consorcio.

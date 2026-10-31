@@ -1,0 +1,35 @@
+@startuml
+title <size:24>System Context View: RutaColca</size>
+
+set separator none
+left to right direction
+
+<style>
+  root {
+    BackgroundColor: #ffffff
+    FontColor: #444444
+  }
+</style>
+
+!include <C4/C4>
+!include <C4/C4_Context>
+
+Person(Turista, "Turista", $descr="Busca salidas, reserva y paga.", $tags="", $link="")
+System(Pasareladepagosvigente, "Pasarela de pagos vigente", $descr="Procesa pagos actuales.", $tags="", $link="")
+System(PayPal, "PayPal", $descr="Proveedor propuesto para turistas extranjeros; contrato pendiente.", $tags="", $link="")
+System(AUTOCOLCA, "AUTOCOLCA", $descr="Valida boletos turísticos.", $tags="", $link="")
+System(WhatsAppBusiness, "WhatsApp Business", $descr="Envía itinerarios y avisos.", $tags="", $link="")
+Person(Operadordeagencia, "Operador de agencia", $descr="Gestiona tours y reservas, incluso sin conexión.", $tags="", $link="")
+System(RutaColca, "RutaColca", $descr="Reserva tours, cobra boletos y entrega itinerarios.", $tags="", $link="")
+
+Rel(Turista, RutaColca, "Busca salidas y paga", $techn="HTTPS", $tags="", $link="")
+Rel(Operadordeagencia, RutaColca, "Gestiona tours y reservas", $techn="HTTPS", $tags="", $link="")
+Rel(RutaColca, Pasareladepagosvigente, "Procesa pagos vigentes", $techn="HTTPS", $tags="", $link="")
+Rel(RutaColca, PayPal, "Inicia y consulta pagos propuestos", $techn="HTTPS", $tags="", $link="")
+Rel(PayPal, RutaColca, "Notifica cambio de estado autenticado", $techn="HTTPS", $tags="", $link="")
+Rel(RutaColca, AUTOCOLCA, "Valida boletos", $techn="HTTPS", $tags="", $link="")
+Rel(RutaColca, WhatsAppBusiness, "Envía itinerarios", $techn="HTTPS", $tags="", $link="")
+
+SHOW_LEGEND(true)
+hide stereotypes
+@enduml

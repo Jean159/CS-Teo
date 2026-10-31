@@ -1,0 +1,51 @@
+@startuml
+title <size:24>Dynamic View: RutaColca - API Core</size>
+
+set separator none
+left to right direction
+
+<style>
+  root {
+    BackgroundColor: #ffffff
+    FontColor: #444444
+  }
+</style>
+
+!include <C4/C4>
+!include <C4/C4_Context>
+!include <C4/C4_Container>
+!include <C4/C4_Component>
+
+Person(Turista, "Turista", $descr="Busca salidas, reserva y paga.", $tags="", $link="")
+
+System(PayPal, "PayPal", $descr="Proveedor propuesto para turistas extranjeros; contrato pendiente.", $tags="", $link="")
+
+System_Boundary("RutaColca_boundary", "RutaColca", $tags="") {
+  Container_Boundary("RutaColca.APICore_boundary", "API Core", $tags="") {
+    Component(RutaColca.APICore.AdaptadorPayPal, "AdaptadorPayPal", $techn="Java / HTTPS", $descr="Traduce API y avisos del proveedor PayPal.", $tags="", $link="")
+    Component(RutaColca.APICore.ConfirmarPago, "ConfirmarPago", $techn="Java", $descr="Verifica aviso, referencia y estado; confirma idempotentemente.", $tags="", $link="")
+    Component(RutaColca.APICore.IniciarPago, "IniciarPago", $techn="Java", $descr="Crea intento vinculado a reserva y proveedor autorizado.", $tags="", $link="")
+    Component(RutaColca.APICore.ProveedorPago, "ProveedorPago", $techn="Interfaz Java", $descr="Contrato de inicio y consulta de pagos.", $tags="", $link="")
+  }
+
+  ContainerDb(RutaColca.PostgreSQL, "PostgreSQL", $techn="PostgreSQL 16", $descr="Salidas, reservas, pagos y claves idempotentes.", $tags="", $link="")
+  Container(RutaColca.Webdelturista, "Web del turista", $techn="React SPA", $descr="Busca salidas y solicita reservas/pagos.", $tags="", $link="")
+}
+
+Person(Turista, "Turista", $descr="Busca salidas, reserva y paga.", $tags="", $link="")
+Container(RutaColca.Webdelturista, "Web del turista", $techn="React SPA", $descr="Busca salidas y solicita reservas/pagos.", $tags="", $link="")
+ContainerDb(RutaColca.PostgreSQL, "PostgreSQL", $techn="PostgreSQL 16", $descr="Salidas, reservas, pagos y claves idempotentes.", $tags="", $link="")
+System(PayPal, "PayPal", $descr="Proveedor propuesto para turistas extranjeros; contrato pendiente.", $tags="", $link="")
+
+Rel(Turista, RutaColca.Webdelturista, "1: Selecciona PayPal y reserva", $techn="HTTPS", $tags="", $link="")
+Rel(RutaColca.APICore.IniciarPago, RutaColca.APICore.ProveedorPago, "2: Solicita inicio de pago", $techn="Java", $tags="", $link="")
+Rel(RutaColca.APICore.ProveedorPago, RutaColca.APICore.AdaptadorPayPal, "3: Delega a PayPal", $techn="Java", $tags="", $link="")
+Rel(RutaColca.APICore.AdaptadorPayPal, PayPal, "4: Inicia y consulta intento", $techn="HTTPS", $tags="", $link="")
+Rel(RutaColca.APICore.IniciarPago, RutaColca.PostgreSQL, "5: Registra intento y referencia", $techn="JDBC/SQL", $tags="", $link="")
+Rel(PayPal, RutaColca.APICore.ConfirmarPago, "6: Notifica resultado autenticado", $techn="HTTPS", $tags="", $link="")
+Rel(RutaColca.APICore.ConfirmarPago, RutaColca.APICore.AdaptadorPayPal, "7: Consulta estado para conciliar", $techn="Java", $tags="", $link="")
+Rel(RutaColca.APICore.ConfirmarPago, RutaColca.PostgreSQL, "8: Actualiza reserva idempotentemente", $techn="JDBC/SQL", $tags="", $link="")
+
+SHOW_LEGEND(true)
+hide stereotypes
+@enduml
